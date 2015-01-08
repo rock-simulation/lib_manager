@@ -1,0 +1,3 @@
+message("find_package(mars) is deprecated use find_package(lib_manager) instead!")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_INSTALL_PREFIX}/share/lib_manager/cmake)
+include(lib_manager)

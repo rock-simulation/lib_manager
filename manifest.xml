@@ -1,5 +1,4 @@
 <package>
-    <depend package="simulation/mars/scripts/cmake" />
     <description brief="lib_manager">
 	This library manages the loading and use of other libraries.
     </description>

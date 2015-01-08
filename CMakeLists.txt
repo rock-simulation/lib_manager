@@ -59,7 +59,7 @@ install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 
 configure_file(scripts/cmake/lib_manager-config.cmake.in ${CMAKE_BINARY_DIR}/lib_manager-config.cmake @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/lib_manager-config.cmake DESTINATION share/lib_manager/cmake)
-install(FILES lib_manager.cmake DESTINATION share/lib_manager/cmake)
+install(FILES scripts/cmake/lib_manager.cmake DESTINATION share/lib_manager/cmake)
 
 # for deprecated support
 configure_file(scripts/cmake/mars-config.cmake.in ${CMAKE_BINARY_DIR}/mars-config.cmake @ONLY)

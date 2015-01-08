@@ -35,7 +35,7 @@ endfunction(define_module_info)
 
 
 macro(mars_defaults)
-  message("The use of this macro is deprecated! Use lib_defaults() instead.")
+  message("*------------* The use of the mars_defaults() macro is deprecated! Use lib_defaults() instead.")
   lib_defaults()
 endmacro(mars_defaults)
 

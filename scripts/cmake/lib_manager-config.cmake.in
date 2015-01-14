@@ -1,2 +1,8 @@
+# apped the path where the lib_manager was installed
+list(APPEND CMAKE_MODULE_PATH @CMAKE_INSTALL_PREFIX@/share/lib_manager/cmake)
+
+# we also append the path based on the install prefix, which allows to move or
+# copy the install folder path
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_INSTALL_PREFIX}/share/lib_manager/cmake)
+
 include(lib_manager)

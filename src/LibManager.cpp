@@ -156,6 +156,7 @@ namespace lib_manager {
   LibManager::ErrorNumber LibManager::loadLibrary(const string &libPath, 
                                                   void *config) {
     const char *prefix = "lib";
+    const char *env2 = "MARS_LIBRARY_PATH";
 #ifdef WIN32
     const char *suffix = ".dll";
     const char sep = ';';
@@ -179,9 +180,12 @@ namespace lib_manager {
       filepath.append(libPath);
       filepath.append(suffix);
       char* lib_path = getenv(env);
-      if(lib_path) {
+      char* lib_path2 = getenv(env2);
+      if(lib_path || lib_path2) {
         // try to first find library
         std::string lib_path_s(lib_path);
+        lib_path_s.append(":");
+        lib_path_s.append(lib_path2);
         size_t next_path_pos = 0;
         size_t actual_path_pos = 0;
         while(next_path_pos != string::npos) {

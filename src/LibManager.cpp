@@ -184,8 +184,10 @@ namespace lib_manager {
       if(lib_path || lib_path2) {
         // try to first find library
         std::string lib_path_s(lib_path);
-        lib_path_s.append(":");
-        lib_path_s.append(lib_path2);
+        if(lib_path2) {
+          lib_path_s.append(":");
+          lib_path_s.append(lib_path2);
+        }
         size_t next_path_pos = 0;
         size_t actual_path_pos = 0;
         while(next_path_pos != string::npos) {

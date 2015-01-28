@@ -84,9 +84,13 @@ namespace lib_manager {
                 it->first.c_str(), it->second.useCount);
       }
     } else {
-      fprintf(stderr, "LibManager: successfully deleted all libraries!\n");
+#ifdef DEBUG
+      printf("LibManager: successfully deleted all libraries!\n");
+#endif
     }
-    fprintf(stderr, "Delete lib_manager\n");
+#ifdef DEBUG
+    printf("Delete lib_manager\n");
+#endif
   }
 
   /**
@@ -100,7 +104,9 @@ namespace lib_manager {
       finished = true;
       for(it = libMap.begin(); it != libMap.end(); ++it) {
         if(it->second.useCount == 0) {
-          fprintf(stderr, "LibManager: delete [%s] !\n", it->first.c_str() );
+#ifdef DEBUG
+          printf("LibManager: delete [%s] !\n", it->first.c_str() );
+#endif
           if(it->second.destroy) {
             it->second.destroy(it->second.libInterface);
           }
@@ -170,7 +176,9 @@ namespace lib_manager {
     const char sep = ':';
     const char *env = "LD_LIBRARY_PATH";
 #endif
-    fprintf(stderr, "lib_manager: load plugin: %s\n", libPath.c_str());
+#ifdef DEBUG
+    printf("lib_manager: load plugin: %s\n", libPath.c_str());
+#endif
 
     //try to locate the library somewhere by checking at various path positions
     FILE *testFile = fopen(libPath.c_str(), "r");
@@ -183,9 +191,14 @@ namespace lib_manager {
       char* lib_path2 = getenv(env2);
       if(lib_path || lib_path2) {
         // try to first find library
-        std::string lib_path_s(lib_path);
+        std::string lib_path_s;
+        if(lib_path) {
+          lib_path_s = lib_path;
+          if(lib_path2) {
+            lib_path_s.append(":");
+          }
+        }
         if(lib_path2) {
-          lib_path_s.append(":");
           lib_path_s.append(lib_path2);
         }
         size_t next_path_pos = 0;
@@ -200,8 +213,10 @@ namespace lib_manager {
           if(testFile) {
             fclose(testFile);
             filepath = actual_lib_path;
-            fprintf(stderr, "lib_manager: found plugin at: %s\n",
-                    filepath.c_str());
+#ifdef DEBUG
+            printf("lib_manager: found plugin at: %s\n",
+                   filepath.c_str());
+#endif
             break;
           }
           actual_path_pos = next_path_pos + 1;
@@ -303,7 +318,10 @@ namespace lib_manager {
     libStruct *theLib = &(libMap[libName]);
     theLib->wasUnloaded = true;
     if(theLib->useCount <= 0) {
-      fprintf(stderr, "LibManager: unload delete [%s]\n", libName.c_str());
+#ifdef DEBUG
+      printf("LibManager: unload delete [%s]\n", libName.c_str());
+#endif
+
       if(theLib->destroy) {
         theLib->destroy(theLib->libInterface);
       }

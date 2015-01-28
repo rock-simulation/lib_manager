@@ -38,12 +38,14 @@
 #include <map>
 #include <string>
 #include <list>
-
+#include <vector>
+#include <class_loader/class_loader.h>
 
 namespace lib_manager {
 
   struct libStruct {
     LibInterface *libInterface;
+    boost::shared_ptr<LibInterface> shared_interface; 
     destroyLib *destroy;
     int useCount;
     bool wasUnloaded;
@@ -74,6 +76,8 @@ namespace lib_manager {
 
     LibManager();
     ~LibManager();
+    
+    static LibManager *getInstance();
 
     void addLibrary(LibInterface *_lib);
     ErrorNumber loadLibrary(const std::string &libPath,
@@ -98,7 +102,10 @@ namespace lib_manager {
 
   private:
     /// The container in which information on all managed libraries is stored.
-    std::map<std::string, libStruct> libMap;
+    std::map<std::string, libStruct*> libMap;
+    static LibManager *instance;
+
+    std::vector<class_loader::ClassLoader*> loaders;
         
   }; // class LibManager
 
@@ -110,8 +117,12 @@ namespace lib_manager {
     if(libInterface){
       lib = dynamic_cast<T*>(libInterface);
       if(!lib) {
+        std::cerr << "!!!!!!!---- Got library " << libName  << "But cast failed" << std::endl;
         releaseLibrary(libName);
       }
+    }else{
+        std::cerr << "!!!!!!!---- Got NO library for " << libName  << std::endl;
+    
     }
     return lib;
   }

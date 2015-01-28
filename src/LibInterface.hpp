@@ -33,7 +33,7 @@
 #endif
 
 #include <string>
-
+#include <class_loader/class_loader.h>
 /* We had to jump through some hoops to get the git version information
  * into the libInterface:
  * 1) If we set it directly in the constructor the linker seems to mess things
@@ -70,6 +70,7 @@ extern "C" lib_manager::LibInterface* create_c(lib_manager::LibManager *theManag
   }
 
 #define CREATE_LIB(theClass)                                            \
+    CLASS_LOADER_REGISTER_CLASS(theClass, lib_manager::LibInterface);      \
   extern "C" lib_manager::LibInterface* create_c(lib_manager::LibManager *theManager) { \
     theClass *instance = new theClass(theManager);                      \
     instance->createModuleInfo();                                       \
@@ -107,8 +108,7 @@ namespace lib_manager {
    */
   class LibInterface {
   public:
-    LibInterface(LibManager *theManager)
-      : libManager(theManager) {}
+    LibInterface(LibManager *theManager=0);
 
     virtual ~LibInterface(void) {}
     virtual int getLibVersion() const = 0;
@@ -117,7 +117,7 @@ namespace lib_manager {
     { return moduleInfo; }
     virtual void newLibLoaded(const std::string &libName) {}
     virtual void createModuleInfo(void) {}
-
+    virtual void setLibManager(LibManager *manager){libManager = manager;};
   protected:
     LibManager *libManager;
     ModuleInfo moduleInfo;

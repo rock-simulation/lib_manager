@@ -38,8 +38,20 @@
 #include <cstdio>
 #include <stdlib.h>
 
-namespace lib_manager {
+using namespace std;
 
+namespace lib_manager {
+   
+LibManager *LibManager::instance=0;
+
+LibManager* LibManager::getInstance(){
+    if(!instance){
+        new LibManager();
+    }
+    return instance;
+}
+
+#if 0
 #if defined(_LIBCPP_VERSION)
   // clang's libc++
   static struct LibInfo stdlibInfo = { "libc++", "", _LIBCPP_VERSION,
@@ -55,21 +67,31 @@ namespace lib_manager {
 
   using namespace std;
 
+
   // forward declarations
   static LibHandle intern_loadLib(const string &libPath);
   template <typename T>
   static T getFunc(LibHandle libHandle, const string &name);
 
+#endif
 
   LibManager::LibManager() {
+      if(instance){
+          std::cerr << "Warning new LibManager created without singleton access" << std::endl;
+      }
+      LibManager::instance = this;
+#if 0
     errMessage[0] = "no error";
     errMessage[1] = "no library with given name loaded";
     errMessage[2] = "library name already exists";
     errMessage[3] = "not able to load library";  
     errMessage[4] = "library is still in use";  
+#endif
   }
 
   LibManager::~LibManager() {
+      std::cerr << "Delete libManager" << std::endl;
+#if 0
     std::map<std::string, libStruct>::iterator it;
     clearLibraries();
 
@@ -87,12 +109,14 @@ namespace lib_manager {
       fprintf(stderr, "LibManager: successfully deleted all libraries!\n");
     }
     fprintf(stderr, "Delete lib_manager\n");
+#endif
   }
 
   /**
    * Empties the libMap field and deletes all items (libStructs) from memory.
    */
   void LibManager::clearLibraries() {
+#if 0
     std::map<std::string, libStruct>::iterator it;
     bool finished = false;
 
@@ -110,6 +134,7 @@ namespace lib_manager {
         }
       }
     }
+#endif
   }
 
   /**
@@ -123,15 +148,24 @@ namespace lib_manager {
     if(!_lib) {
       return;
     }
-    libStruct newLib;
-    string name = _lib->getLibName();
+    libStruct *newLib = new libStruct();
+    std::string name = _lib->getLibName();
+    loaders.push_back(new class_loader::ClassLoader(name,false)); 
 
-    newLib.destroy = 0;
-    newLib.libInterface = _lib;
-    newLib.useCount = 1;
-    newLib.wasUnloaded = false;
+    std::cout << "Has loaded: "  <<__FUNCTION__ << _lib->getLibName() << std::endl;
+    
+    newLib->destroy = 0;
+    newLib->libInterface = _lib;
+    newLib->useCount = 1;
+    newLib->wasUnloaded = false;
     _lib->createModuleInfo();
-
+    
+    if(libMap.find(name) == libMap.end()) {
+      std::cerr << "######### Adding: " << newLib->libInterface->getLibName() << " <-> " << name << std::endl;
+      libMap[name] = newLib;
+    }
+    
+/*
     if(libMap.find(name) == libMap.end()) {
       libMap[name] = newLib;
 
@@ -143,6 +177,7 @@ namespace lib_manager {
           it->second.libInterface->newLibLoaded(name);
       }
     }
+    */
   }
 
   /**
@@ -153,7 +188,7 @@ namespace lib_manager {
    * @param config 
    * @return 
    */
-  LibManager::ErrorNumber LibManager::loadLibrary(const string &libPath, 
+  LibManager::ErrorNumber LibManager::loadLibrary(const std::string &libPath, 
                                                   void *config) {
     const char *prefix = "lib";
     const char *env2 = "MARS_LIBRARY_PATH";
@@ -190,9 +225,9 @@ namespace lib_manager {
         }
         size_t next_path_pos = 0;
         size_t actual_path_pos = 0;
-        while(next_path_pos != string::npos) {
+        while(next_path_pos != std::string::npos) {
           next_path_pos = lib_path_s.find(sep, actual_path_pos);
-          string actual_path = lib_path_s.substr(actual_path_pos, (next_path_pos != string::npos) ? next_path_pos - actual_path_pos : lib_path_s.size() - actual_path_pos);
+          std::string actual_path = lib_path_s.substr(actual_path_pos, (next_path_pos != std::string::npos) ? next_path_pos - actual_path_pos : lib_path_s.size() - actual_path_pos);
           actual_path.append("/");
           std::string actual_lib_path = actual_path;
           actual_lib_path.append(filepath);
@@ -214,16 +249,13 @@ namespace lib_manager {
     }
 
 
-    libStruct newLib;
-    newLib.destroy = 0;
-    newLib.libInterface = 0;
-    newLib.useCount = 0;
-    newLib.wasUnloaded = false;
-    newLib.path = filepath;
+    printf("Loading lib: %s\n",filepath.c_str());
+    class_loader::ClassLoader *loader = new class_loader::ClassLoader(filepath,false);
+    loaders.push_back(loader); 
 
 
-    LibHandle pl = intern_loadLib(filepath);
-
+    //LibHandle pl = intern_loadLib(filepath);
+#if 0
     if(pl) {
       newLib.destroy = getFunc<destroyLib*>(pl, "destroy_c");
       if(newLib.destroy) {
@@ -238,25 +270,56 @@ namespace lib_manager {
         }
       }
     }
+#endif
+    loader->loadLibrary();
+    std::vector<std::string> lib_names = loader->getAvailableClasses<lib_manager::LibInterface>();
+    std::cerr << "Availible classes (" << lib_names.size() << "):" << std::endl;
+    for(int i=0;i<lib_names.size();i++){
+        std::cerr << "-- " <<lib_names[i] << std::endl;
+    
+    libStruct *newLib = new libStruct();
+    newLib->destroy = 0;
+    newLib->libInterface = 0;
+    newLib->useCount = 0;
+    newLib->wasUnloaded = false;
+    newLib->path = filepath;
 
-    if(!newLib.libInterface)
+    
+    //newLib.libInterface = loader->createInstance<lib_manager::LibInterface>(lib_names[0]).get();  
+    newLib->shared_interface = loader->createInstance<lib_manager::LibInterface>(lib_names[i]);  
+    newLib->libInterface = newLib->shared_interface.get();
+//    newLib.shared_interface->setLibManager(this);
+
+    if(!newLib->libInterface){
       return LIBMGR_ERR_NOT_ABLE_TO_LOAD;
-
-    string name = newLib.libInterface->getLibName();
-
+    }
+    /*
+    if(lib_names.size() != 1){
+        std::cerr << "Unable to load lib, its ambigious or nonexistend" << std::endl;
+      return LIBMGR_ERR_NOT_ABLE_TO_LOAD;
+    }
+    */
+    std::string name = newLib->libInterface->getLibName();
+/*
     if(libMap.find(name) != libMap.end()) {
       newLib.destroy(newLib.libInterface);
       return LIBMGR_ERR_LIBNAME_EXISTS;
     }
-
+    
+*/
+    std::cerr << "#########(2) Adding: " << newLib->libInterface->getLibName() << " <-> " << name << std::endl;
     libMap[name] = newLib;
+#if 1
     // notify all Libs of newly loaded lib
-    for(map<string, libStruct>::iterator it = libMap.begin();
+    for(map<string, libStruct*>::iterator it = libMap.begin();
         it != libMap.end(); ++it) {
       // not notify the new lib about itself
       if(it->first != name)
-        it->second.libInterface->newLibLoaded(name);
+        it->second->libInterface->newLibLoaded(name);
     }
+#endif
+    }
+    std::cerr << "Ende: " << __FUNCTION__ << std::endl; 
     return LIBMGR_NO_ERROR;
   }
 
@@ -266,11 +329,20 @@ namespace lib_manager {
    * @return A libStruct* if library is registered, otherwise 0.
    */
   LibInterface* LibManager::acquireLibrary(const string &libName) {
+      std::cerr << __FUNCTION__ << std::endl;
     if(libMap.find(libName) == libMap.end()) {
       fprintf(stderr, "LibManager: could not find \"%s\"\n", libName.c_str());
       return 0;
     }
-    libStruct *theLib = &(libMap[libName]);
+    libStruct *theLib = (libMap[libName]);
+    if(!theLib->libInterface){
+        fprintf(stderr, "LibManager: could not get instance for \"%s\"\n", libName.c_str());
+        return 0;
+    }
+    if(theLib->libInterface->getLibName() != libName){
+        std::cerr << "Got library with name " <<  theLib->libInterface->getLibName() <<" for " << libName << std::endl;
+        exit(-1);
+    }
     theLib->useCount++;
     return theLib->libInterface;
   }
@@ -281,6 +353,8 @@ namespace lib_manager {
    * @return 
    */
   LibManager::ErrorNumber LibManager::releaseLibrary(const string &libName) {
+      std::cerr << __FUNCTION__ << std::endl;
+#if 0
     if(libMap.find(libName) == libMap.end()) {
       return LIBMGR_ERR_NO_LIBRARY;
     }
@@ -289,6 +363,7 @@ namespace lib_manager {
     if(theLib->useCount <= 0 && theLib->wasUnloaded) {
       unloadLibrary(libName);
     }
+#endif
     return LIBMGR_NO_ERROR;
   }
 
@@ -296,6 +371,8 @@ namespace lib_manager {
    * This method is not to be directly called. Use releaseLibrary() instead.
    */
   LibManager::ErrorNumber LibManager::unloadLibrary(const string &libName) {
+      std::cerr << __FUNCTION__ << std::endl;
+#if 0
     if(libMap.find(libName) == libMap.end()) {
       return LIBMGR_ERR_NO_LIBRARY;
     }
@@ -310,6 +387,7 @@ namespace lib_manager {
       libMap.erase(libName);
       return LIBMGR_NO_ERROR;
     }
+#endif
     return LIBMGR_ERR_LIB_IN_USE;
   }
 
@@ -320,6 +398,7 @@ namespace lib_manager {
    * @param config_file
    */
   void LibManager::loadConfigFile(const std::string &config_file) {
+      std::cerr << __FUNCTION__ << std::endl;
     char plugin_chars[255];
     std::string plugin_path;
     FILE *plugin_config;
@@ -355,10 +434,11 @@ namespace lib_manager {
    * @param libList
    */
   void LibManager::getAllLibraries(std::list<LibInterface*> *libList) {
-    std::map<std::string, libStruct>::iterator it;
+      std::cerr << __FUNCTION__ << std::endl;
+    std::map<std::string, libStruct*>::iterator it;
     for(it = libMap.begin(); it != libMap.end(); ++it) {
-      it->second.useCount++;
-      libList->push_back(it->second.libInterface);
+      it->second->useCount++;
+      libList->push_back(it->second->libInterface);
     }
   }
     
@@ -367,7 +447,8 @@ namespace lib_manager {
    * @param libNameList A pointer to a list of strings.
    */
   void LibManager::getAllLibraryNames(std::list<std::string> *libNameList) const {
-    std::map<std::string, libStruct>::const_iterator it;
+      std::cerr << __FUNCTION__ << std::endl;
+    std::map<std::string, libStruct*>::const_iterator it;
     for(it = libMap.begin(); it != libMap.end(); ++it) {
       libNameList->push_back(it->first);
     }
@@ -379,17 +460,18 @@ namespace lib_manager {
    * @return 
    */
   LibInfo LibManager::getLibraryInfo(const std::string &libName) const {
+      std::cerr << __FUNCTION__ << std::endl;
     LibInfo info;
-    std::map<std::string, libStruct>::const_iterator it;
+    std::map<std::string, libStruct*>::const_iterator it;
     it = libMap.find(libName);
     if(it != libMap.end()) {
-      ModuleInfo modInfo = it->second.libInterface->getModuleInfo();
+      ModuleInfo modInfo = it->second->libInterface->getModuleInfo();
       info.name = libName;
-      info.path = it->second.path;
-      info.version = it->second.libInterface->getLibVersion();
+      info.path = it->second->path;
+      info.version = it->second->libInterface->getLibVersion();
       info.src = modInfo.src;
       info.revision = modInfo.revision;
-      info.references = it->second.useCount;
+      info.references = it->second->useCount;
     }
     return info;
   }
@@ -399,6 +481,8 @@ namespace lib_manager {
    * @param filepath The path of the file where the names should be dumped.
    */
   void LibManager::dumpTo(const std::string &filepath) const {
+      std::cerr << __FUNCTION__ << std::endl;
+#if 0
     std::list<std::string> libNames;
     std::list<std::string>::const_iterator libNamesIt;
     getAllLibraryNames(&libNames);
@@ -428,6 +512,7 @@ namespace lib_manager {
             stdlibInfo.version, stdlibInfo.revision.c_str());
     fprintf(file, "  </modules>\n");
     fclose(file);
+#endif
   }
 
   ////////////////////
@@ -435,6 +520,8 @@ namespace lib_manager {
   ////////////////////
 
   static std::string getErrorStr() {
+      std::cerr << __FUNCTION__ << std::endl;
+#if 0
     string errorMsg;
 #ifdef WIN32
     LPTSTR lpErrorText = NULL;
@@ -448,9 +535,12 @@ namespace lib_manager {
     errorMsg = dlerror();
 #endif
     return errorMsg;
+#endif
   }
 
   static LibHandle intern_loadLib(const std::string &libPath) {
+      std::cerr << __FUNCTION__ << std::endl;
+#if 0
     LibHandle libHandle;
 #ifdef WIN32
     libHandle = LoadLibrary(libPath.c_str());
@@ -463,10 +553,13 @@ namespace lib_manager {
               errorMsg.c_str());
     }
     return libHandle;
+#endif
   }
 
   template <typename T>
   static T getFunc(LibHandle libHandle, const std::string &name) {
+      std::cerr << __FUNCTION__ << std::endl;
+#if 0
     T func = NULL;
 #ifdef WIN32
     func = reinterpret_cast<T>(GetProcAddress(libHandle, name.c_str()));
@@ -480,6 +573,7 @@ namespace lib_manager {
               "       %s\n", name.c_str(), err.c_str());
     }
     return func;
+#endif
   }
 
 } // end of namespace lib_manager

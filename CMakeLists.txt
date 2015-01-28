@@ -9,6 +9,7 @@ define_module_info()
 
 set(SOURCES 
 	src/LibManager.cpp
+	src/LibInterface.cpp
 )
 set(HEADERS
 	src/LibInterface.hpp
@@ -20,12 +21,18 @@ set(DEPRECATED_HEADERS
 	src/LibManager.h
 )
 
+find_package(PkgConfig)
+pkg_check_modules(class_loader class_loader)
+INCLUDE_DIRECTORIES("/home/goldhoorn/bootstraps/mars/install/include") #quick hack
+LINK_DIRECTORIES("/home/goldhoorn/bootstraps/mars/install/lib") #quick hack
+FIND_PACKAGE( Boost COMPONENTS system REQUIRED )
+
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 add_library(${PROJECT_NAME}_static STATIC ${SOURCES})
 
 if(UNIX)
-  target_link_libraries(${PROJECT_NAME} dl)
-  target_link_libraries(${PROJECT_NAME}_static dl)
+    target_link_libraries(${PROJECT_NAME} dl ${Boost_LIBRARIES} class_loader)
+    target_link_libraries(${PROJECT_NAME}_static dl ${Boost_LIBRARIES} class_loader)
 endif(UNIX)
 
 if(WIN32)
@@ -42,6 +49,8 @@ set(_INSTALL_DESTINATIONS
 )
 
 
+
+
 # Install the library into the lib folder
 install(TARGETS ${PROJECT_NAME} ${_INSTALL_DESTINATIONS})
 install(TARGETS ${PROJECT_NAME}_static ${_INSTALL_DESTINATIONS})
@@ -53,8 +62,8 @@ install(FILES ${DEPRECATED_HEADERS} DESTINATION include/mars/${PROJECT_NAME})
 #INSTALL(DIRECTORY ../../scripts/cmake DESTINATION .)
 
 # Prepare and install necessary files to support finding of the library 
-# using pkg-config
 configure_file(${PROJECT_NAME}.pc.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
+# using pkg-config
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 
 configure_file(scripts/cmake/lib_manager-config.cmake.in ${CMAKE_BINARY_DIR}/lib_manager-config.cmake @ONLY)

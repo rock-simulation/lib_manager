@@ -56,7 +56,7 @@ namespace lib_manager {
   using namespace std;
 
   // forward declarations
-  static LibHandle intern_loadLib(const string &libPath);
+  static LibHandle intern_loadLib(const string &libPath, bool optional = false);
   template <typename T>
   static T getFunc(LibHandle libHandle, const string &name);
 
@@ -159,8 +159,8 @@ namespace lib_manager {
    * @param config 
    * @return 
    */
-  LibManager::ErrorNumber LibManager::loadLibrary(const string &libPath, 
-                                                  void *config) {
+  LibManager::ErrorNumber LibManager::loadLibrary(const string &libPath,
+                                                  void *config, bool optional) {
     const char *prefix = "lib";
     const char *env2 = "MARS_LIBRARY_PATH";
 #ifdef WIN32
@@ -237,7 +237,7 @@ namespace lib_manager {
     newLib.path = filepath;
 
 
-    LibHandle pl = intern_loadLib(filepath);
+    LibHandle pl = intern_loadLib(filepath, optional);
 
     if(pl) {
       newLib.destroy = getFunc<destroyLib*>(pl, "destroy_c");
@@ -468,7 +468,7 @@ namespace lib_manager {
     return errorMsg;
   }
 
-  static LibHandle intern_loadLib(const std::string &libPath) {
+  static LibHandle intern_loadLib(const std::string &libPath, bool optional) {
     LibHandle libHandle;
 #ifdef WIN32
     libHandle = LoadLibrary(libPath.c_str());
@@ -477,8 +477,13 @@ namespace lib_manager {
 #endif
     if(!libHandle) {
       string errorMsg = getErrorStr();
-      fprintf(stderr, "ERROR: lib_manager cannot load library:\n       %s\n",
-              errorMsg.c_str());
+      if (optional) {
+        fprintf(stderr, "lib_manager - NOTIFICATION (concerning optional library):\n     %s\n",
+                errorMsg.c_str());
+      } else {
+        fprintf(stderr, "lib_manager - ERROR:\n     %s\n",
+                errorMsg.c_str());
+      }
     }
     return libHandle;
   }

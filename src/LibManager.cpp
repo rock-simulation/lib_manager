@@ -161,6 +161,59 @@ namespace lib_manager {
    */
   LibManager::ErrorNumber LibManager::loadLibrary(const string &libPath,
                                                   void *config, bool optional) {
+    std::string filepath = findLibrary(libPath);
+
+    libStruct newLib;
+    newLib.destroy = 0;
+    newLib.libInterface = 0;
+    newLib.useCount = 0;
+    newLib.wasUnloaded = false;
+    newLib.path = filepath;
+
+    LibHandle pl = intern_loadLib(filepath, optional);
+
+    if(pl) {
+      newLib.destroy = getFunc<destroyLib*>(pl, "destroy_c");
+      if(newLib.destroy) {
+        if(!config) {
+          createLib *tmp_con = getFunc<createLib*>(pl, "create_c");
+          if(tmp_con)
+            newLib.libInterface = tmp_con(this);
+        } else {
+          createLib2 *tmp_con2 = getFunc<createLib2*>(pl, "config_create_c");
+          if(tmp_con2)
+            newLib.libInterface = tmp_con2(this, config);
+        }
+      }
+    }
+
+    if(!newLib.libInterface)
+      return LIBMGR_ERR_NOT_ABLE_TO_LOAD;
+
+    string name = newLib.libInterface->getLibName();
+
+    if(libMap.find(name) != libMap.end()) {
+      newLib.destroy(newLib.libInterface);
+      return LIBMGR_ERR_LIBNAME_EXISTS;
+    }
+
+    libMap[name] = newLib;
+    // notify all Libs of newly loaded lib
+    for(map<string, libStruct>::iterator it = libMap.begin();
+        it != libMap.end(); ++it) {
+      // not notify the new lib about itself
+      if(it->first != name)
+        it->second.libInterface->newLibLoaded(name);
+    }
+    return LIBMGR_NO_ERROR;
+  }
+
+  /**
+   * Searches for a library on the hard drive by checking the PATH environment.
+   * @param libName Can be the name of the library or the whole path.
+   * @return libPath
+   */
+  std::string LibManager::findLibrary(const string &libName) {
     const char *prefix = "lib";
     const char *env2 = "MARS_LIBRARY_PATH";
 #ifdef WIN32
@@ -177,15 +230,15 @@ namespace lib_manager {
     const char *env = "LD_LIBRARY_PATH";
 #endif
 #ifdef DEBUG
-    printf("lib_manager: load plugin: %s\n", libPath.c_str());
+    printf("lib_manager: search for: %s\n", libName.c_str());
 #endif
 
     //try to locate the library somewhere by checking at various path positions
-    FILE *testFile = fopen(libPath.c_str(), "r");
+    FILE *testFile = fopen(libName.c_str(), "r");
     std::string filepath;
     if(!testFile) {
       filepath = prefix;
-      filepath.append(libPath);
+      filepath.append(libName);
       filepath.append(suffix);
       char* lib_path = getenv(env);
       char* lib_path2 = getenv(env2);
@@ -224,55 +277,10 @@ namespace lib_manager {
       }
     }
     else {
-      filepath = libPath;
+      filepath = libName;
       fclose(testFile);
     }
-
-
-    libStruct newLib;
-    newLib.destroy = 0;
-    newLib.libInterface = 0;
-    newLib.useCount = 0;
-    newLib.wasUnloaded = false;
-    newLib.path = filepath;
-
-
-    LibHandle pl = intern_loadLib(filepath, optional);
-
-    if(pl) {
-      newLib.destroy = getFunc<destroyLib*>(pl, "destroy_c");
-      if(newLib.destroy) {
-        if(!config) {
-          createLib *tmp_con = getFunc<createLib*>(pl, "create_c");
-          if(tmp_con)
-            newLib.libInterface = tmp_con(this);
-        } else {
-          createLib2 *tmp_con2 = getFunc<createLib2*>(pl, "config_create_c");
-          if(tmp_con2)
-            newLib.libInterface = tmp_con2(this, config);
-        }
-      }
-    }
-
-    if(!newLib.libInterface)
-      return LIBMGR_ERR_NOT_ABLE_TO_LOAD;
-
-    string name = newLib.libInterface->getLibName();
-
-    if(libMap.find(name) != libMap.end()) {
-      newLib.destroy(newLib.libInterface);
-      return LIBMGR_ERR_LIBNAME_EXISTS;
-    }
-
-    libMap[name] = newLib;
-    // notify all Libs of newly loaded lib
-    for(map<string, libStruct>::iterator it = libMap.begin();
-        it != libMap.end(); ++it) {
-      // not notify the new lib about itself
-      if(it->first != name)
-        it->second.libInterface->newLibLoaded(name);
-    }
-    return LIBMGR_NO_ERROR;
+    return filepath;
   }
 
   /**

@@ -79,6 +79,7 @@ namespace lib_manager {
     ErrorNumber loadLibrary(const std::string &libPath,
                             void *config = NULL,
                             bool silent = false);
+    std::string findLibrary(const std::string &libName);
 
     LibInterface* acquireLibrary(const std::string &libName);
     template <typename T> T* acquireLibraryAs(const std::string &libName);

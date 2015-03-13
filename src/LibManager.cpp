@@ -329,11 +329,11 @@ namespace lib_manager {
 #ifdef DEBUG
       printf("LibManager: unload delete [%s]\n", libName.c_str());
 #endif
-
+      std::string libName_ = libName;
       if(theLib->destroy) {
         theLib->destroy(theLib->libInterface);
       }
-      libMap.erase(libName);
+      libMap.erase(libName_);
       return LIBMGR_NO_ERROR;
     }
     return LIBMGR_ERR_LIB_IN_USE;

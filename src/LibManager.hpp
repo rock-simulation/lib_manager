@@ -82,11 +82,13 @@ namespace lib_manager {
     std::string findLibrary(const std::string &libName);
 
     LibInterface* acquireLibrary(const std::string &libName);
-    template <typename T> T* acquireLibraryAs(const std::string &libName);
+    template <typename T> T* acquireLibraryAs(const std::string &libName,
+                                              bool load = false);
     LibInterface* getLibrary(const std::string &libName)
     { return acquireLibrary(libName); }
-    template <typename T> T* getLibraryAs(const std::string &libName)
-    { return acquireLibraryAs<T>(libName); }
+    template <typename T> T* getLibraryAs(const std::string &libName,
+                                          bool load = false)
+    { return acquireLibraryAs<T>(libName, load); }
 
     ErrorNumber releaseLibrary(const std::string &libName);
 
@@ -106,9 +108,13 @@ namespace lib_manager {
 
   // template implementations
   template <typename T>
-  T* LibManager::acquireLibraryAs(const std::string &libName) {
+  T* LibManager::acquireLibraryAs(const std::string &libName, bool load) {
     T *lib = NULL;
     LibInterface *libInterface = acquireLibrary(libName);
+    if(load && !libInterface) {
+      loadLibrary(libName);
+      libInterface = acquireLibrary(libName);
+    }
     if(libInterface){
       lib = dynamic_cast<T*>(libInterface);
       if(!lib) {

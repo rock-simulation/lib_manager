@@ -290,7 +290,9 @@ namespace lib_manager {
    */
   LibInterface* LibManager::acquireLibrary(const string &libName) {
     if(libMap.find(libName) == libMap.end()) {
+#ifdef DEBUF
       fprintf(stderr, "LibManager: could not find \"%s\"\n", libName.c_str());
+#endif
       return 0;
     }
     libStruct *theLib = &(libMap[libName]);
@@ -352,8 +354,10 @@ namespace lib_manager {
 
     plugin_config = fopen(config_file.c_str() , "r");
     if(!plugin_config) {
+#ifdef DEBUG
       fprintf(stderr, "LibManager::loadConfigFile: file \"%s\" not found.\n",
               config_file.c_str());
+#endif
       return;
     }
 

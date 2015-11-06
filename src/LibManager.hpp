@@ -78,7 +78,9 @@ namespace lib_manager {
     void addLibrary(LibInterface *_lib);
     ErrorNumber loadLibrary(const std::string &libPath,
                             void *config = NULL,
-                            bool silent = false);
+                            bool silent = false,
+                            bool noCallback = false);
+
     std::string findLibrary(const std::string &libName);
 
     LibInterface* acquireLibrary(const std::string &libName);

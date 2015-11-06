@@ -140,7 +140,6 @@ namespace lib_manager {
 
     if(libMap.find(name) == libMap.end()) {
       libMap[name] = newLib;
-
       // notify all Libs of newly loaded lib
       for(map<string, libStruct>::iterator it = libMap.begin();
           it != libMap.end(); ++it) {
@@ -160,7 +159,8 @@ namespace lib_manager {
    * @return 
    */
   LibManager::ErrorNumber LibManager::loadLibrary(const string &libPath,
-                                                  void *config, bool optional) {
+                                                  void *config, bool optional,
+                                                  bool noCallback) {
     std::string filepath = findLibrary(libPath);
 
     libStruct newLib;
@@ -198,12 +198,15 @@ namespace lib_manager {
     }
 
     libMap[name] = newLib;
-    // notify all Libs of newly loaded lib
-    for(map<string, libStruct>::iterator it = libMap.begin();
-        it != libMap.end(); ++it) {
-      // not notify the new lib about itself
-      if(it->first != name)
-        it->second.libInterface->newLibLoaded(name);
+
+    if(!noCallback) {
+      // notify all Libs of newly loaded lib
+      for(map<string, libStruct>::iterator it = libMap.begin();
+          it != libMap.end(); ++it) {
+        // not notify the new lib about itself
+        if(it->first != name)
+          it->second.libInterface->newLibLoaded(name);
+      }
     }
     return LIBMGR_NO_ERROR;
   }

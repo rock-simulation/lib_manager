@@ -293,7 +293,7 @@ namespace lib_manager {
    */
   LibInterface* LibManager::acquireLibrary(const string &libName) {
     if(libMap.find(libName) == libMap.end()) {
-#ifdef DEBUF
+#ifdef DEBUG
       fprintf(stderr, "LibManager: could not find \"%s\"\n", libName.c_str());
 #endif
       return 0;

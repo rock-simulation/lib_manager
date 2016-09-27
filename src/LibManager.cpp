@@ -376,7 +376,9 @@ namespace lib_manager {
       plugin_path = plugin_path.substr(pos1, pos2 - pos1 + 1);
       // ignore lines that start with #
       if(plugin_path[0] != '#') {
-        loadLibrary(plugin_path);
+        if(libMap.find(plugin_path) == libMap.end()) {
+          loadLibrary(plugin_path);
+        }
       }
     }
     fclose(plugin_config);

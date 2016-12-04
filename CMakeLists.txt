@@ -64,3 +64,6 @@ install(FILES scripts/cmake/lib_manager.cmake DESTINATION share/lib_manager/cmak
 # for deprecated support
 configure_file(scripts/cmake/mars-config.cmake.in ${CMAKE_BINARY_DIR}/mars-config.cmake @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/mars-config.cmake DESTINATION share/mars/cmake)
+
+enable_testing()
+add_subdirectory(test)

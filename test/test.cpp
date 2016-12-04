@@ -71,22 +71,6 @@ TEST_CASE("get library info", "[getLibraryInfo]")
     REQUIRE(info.version == 0);
 }
 
-TEST_CASE("get once, release twice", "[releaseLibrary]")
-{
-    lib_manager::LibManager libman;
-
-    lib_manager::LibManager::ErrorNumber error = libman.loadLibrary("abcd");
-    REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
-
-    lib_manager::LibInterface* lib = libman.getLibrary("abcd");
-
-    error = libman.releaseLibrary("abcd");
-    REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
-
-    error = libman.releaseLibrary("abcd");
-    REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
-}
-
 TEST_CASE("get twice, release twice", "[getLibrary]")
 {
     lib_manager::LibManager libman;
@@ -97,6 +81,22 @@ TEST_CASE("get twice, release twice", "[getLibrary]")
     lib_manager::LibInterface* lib1 = libman.getLibrary("abcd");
     lib_manager::LibInterface* lib2 = libman.getLibrary("abcd");
     REQUIRE(lib1 == lib2);
+
+    error = libman.releaseLibrary("abcd");
+    REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
+
+    error = libman.releaseLibrary("abcd");
+    REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
+}
+
+TEST_CASE("get once, release twice", "[releaseLibrary]")
+{
+    lib_manager::LibManager libman;
+
+    lib_manager::LibManager::ErrorNumber error = libman.loadLibrary("abcd");
+    REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
+
+    lib_manager::LibInterface* lib = libman.getLibrary("abcd");
 
     error = libman.releaseLibrary("abcd");
     REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
@@ -146,4 +146,18 @@ TEST_CASE("clear one library", "[clearLibraries]")
     std::list<std::string> libNameList;
     libman.getAllLibraryNames(&libNameList);
     REQUIRE(libNameList.size() == 0);
+}
+
+TEST_CASE("get all libraries", "[getAllLibraries]")
+{
+    lib_manager::LibManager libman;
+
+    lib_manager::LibManager::ErrorNumber error = libman.loadLibrary("abcd");
+    REQUIRE(error == lib_manager::LibManager::LIBMGR_NO_ERROR);
+
+    std::list<lib_manager::LibInterface*> libList;
+    libman.getAllLibraries(&libList);
+    REQUIRE(libList.size() == 1);
+
+    libman.clearLibraries();
 }

@@ -13,12 +13,12 @@ LibClassA::~LibClassA()
 
 int LibClassA::getLibVersion() const
 {
-	return libVersion;
+    return libVersion;
 }
 
 const std::string LibClassA::getLibName() const
 {
-	return libName;
+    return libName;
 }
 
 void LibClassA::createModuleInfo()

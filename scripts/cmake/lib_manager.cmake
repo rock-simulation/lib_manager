@@ -54,5 +54,46 @@ macro(lib_defaults)
 endmacro(lib_defaults)
 
 
+macro(setup_qt)
+  # Widgets finds its own dependencies (QtGui and QtCore).
+
+  option(PREFERE_QT4 "set to OFF to allow build against QT5" ON)
+  if (PREFERE_QT4)
+    find_package(Qt4)
+    if (Qt4_FOUND)
+       set(USE_QT4 1)
+    else ()
+      find_package(Qt5Widgets REQUIRED)
+    endif()
+  else()
+    find_package(Qt5Widgets)
+  endif()
+
+  if (Qt5Widgets_FOUND)
+    set(USE_QT5 1)
+
+    # The Qt5Widgets_INCLUDES also includes the include directories for
+    # dependencies QtCore and QtGui
+    include_directories(${Qt5Widgets_INCLUDES})
+    # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
+    add_definitions(${Qt5Widgets_DEFINITIONS})
+
+    # Executables fail to build with Qt 5 in the default configuration
+    # without -fPIE. We add that here.
+    set(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+    add_definitions("-DUSE_QT5")
+  else ()
+    if (Qt4_NOTFOUND)
+      find_package(Qt4 REQUIRED)
+    endif()
+    include(${QT_USE_FILE})
+    include_directories(${QT_INCLUDE_DIR} ${QT_QTXML_INCLUDE_DIR})
+    link_directories(${QT_LIBRARY_DIR})
+    add_definitions("-D_REENTRANT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED")
+    remove_definitions(-DQT_DLL)
+  endif ()
+endmacro(setup_qt)
+
+
 cmake_policy(POP)
 

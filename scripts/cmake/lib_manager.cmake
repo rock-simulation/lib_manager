@@ -82,7 +82,7 @@ macro(setup_qt)
 
     # Executables fail to build with Qt 5 in the default configuration
     # without -fPIE. We add that here.
-    set(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
     add_definitions("-DUSE_QT5")
   else ()
     if (Qt4_NOTFOUND)

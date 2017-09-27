@@ -20,6 +20,12 @@ set(DEPRECATED_HEADERS
 	src/LibManager.h
 )
 
+if(MSVC)
+#this is needed to create the .lib file of the shared library
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 1)
+endif(MSVC)
+
+
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 add_library(${PROJECT_NAME}_static STATIC ${SOURCES})
 

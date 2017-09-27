@@ -29,7 +29,11 @@ function(define_module_info)
     else(git_has_local_changes)
       set(git_revision ${git_hash})
     endif(git_has_local_changes)
-    add_definitions("-DGIT_INFO" "-DGIT_INFO_REV=${git_revision}" "-DGIT_INFO_SRC=\"${git_src}\"")
+    if(WIN32)
+      add_definitions("-DGIT_INFO" "-DGIT_INFO_REV=${git_revision}" "-DGIT_INFO_SRC=\"'${git_src}'\"")
+    else(WIN32)
+      add_definitions("-DGIT_INFO" "-DGIT_INFO_REV=${git_revision}" "-DGIT_INFO_SRC=\"${git_src}\"")
+    endif(WIN32)
   endif(NOT under_git_control)
 endfunction(define_module_info)
 
@@ -44,13 +48,16 @@ macro(lib_defaults)
     # this fixes the error 998 from the LibManager
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--enable-auto-import")
     set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--enable-auto-import")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
   else(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   endif(WIN32)
   
   if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
   endif()
+
 endmacro(lib_defaults)
 
 
@@ -80,7 +87,7 @@ macro(setup_qt)
 
     # Executables fail to build with Qt 5 in the default configuration
     # without -fPIE. We add that here.
-    set(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
     add_definitions("-DUSE_QT5")
   else ()
     if (Qt4_NOTFOUND)

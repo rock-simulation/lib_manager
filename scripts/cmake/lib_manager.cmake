@@ -64,7 +64,13 @@ endmacro(lib_defaults)
 macro(setup_qt)
   # Widgets finds its own dependencies (QtGui and QtCore).
 
-  option(PREFERE_QT4 "set to OFF to allow build against QT5" ON)
+  if($ENV{USE_QT5})
+    set(QT_OPTION OFF)
+  else()
+    set(QT_OPTION ON)
+  endif()
+
+  option(PREFERE_QT4 "set to OFF to allow build against QT5" ${QT_OPTION})
   if (PREFERE_QT4)
     find_package(Qt4)
     if (Qt4_FOUND)

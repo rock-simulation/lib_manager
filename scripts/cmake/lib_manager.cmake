@@ -110,7 +110,7 @@ endmacro(setup_qt)
 macro(setup_opencv)
   # first check for opencv4
   pkg_check_modules(OPENCV opencv4)
-  if (OPENCV_NOTFOUND)
+  if (NOT OPENCV_FOUND)
     pkg_check_modules(OPENCV REQUIRED opencv)
     set(OPENCV_DEP opencv)
   else()

@@ -107,6 +107,19 @@ macro(setup_qt)
   endif ()
 endmacro(setup_qt)
 
+macro(setup_opencv)
+  # first check for opencv4
+  pkg_check_modules(OPENCV opencv4)
+  if (OPENCV_NOTFOUND)
+    pkg_check_modules(OPENCV REQUIRED opencv)
+    set(OPENCV_DEP opencv)
+  else()
+    set(OPENCV_DEP opencv4)
+  endif()
+  include_directories(${OPENCV_INCLUDE_DIRS})
+  link_directories(${OPENCV_LIBRARY_DIRS})
+  add_definitions(${OPENCV_CFLAGS_OTHER})  #cflags without -I
+endmacro(setup_opencv)
 
 cmake_policy(POP)
 

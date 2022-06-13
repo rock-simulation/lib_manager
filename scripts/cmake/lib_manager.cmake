@@ -87,7 +87,7 @@ macro(setup_qt)
 
     # The Qt5Widgets_INCLUDES also includes the include directories for
     # dependencies QtCore and QtGui
-    include_directories(${Qt5Widgets_INCLUDES})
+    include_directories(${Qt5Widgets_INCLUDE_DIRS})
     # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
     add_definitions(${Qt5Widgets_DEFINITIONS})
 

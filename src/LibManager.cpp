@@ -133,6 +133,8 @@ namespace lib_manager {
     string name = _lib->getLibName();
 
     newLib.destroy = 0;
+    newLib.create = 0;
+    newLib.configCreate = 0;
     newLib.libInterface = _lib;
     newLib.useCount = 1;
     newLib.wasUnloaded = false;
@@ -165,6 +167,8 @@ namespace lib_manager {
 
     libStruct newLib;
     newLib.destroy = 0;
+    newLib.create = 0;
+    newLib.configCreate = 0;
     newLib.libInterface = 0;
     newLib.useCount = 0;
     newLib.wasUnloaded = false;
@@ -177,12 +181,16 @@ namespace lib_manager {
       if(newLib.destroy) {
         if(!config) {
           createLib *tmp_con = getFunc<createLib*>(pl, "create_c");
-          if(tmp_con)
+          if(tmp_con) {
+            newLib.create = tmp_con;
             newLib.libInterface = tmp_con(this);
+          }
         } else {
           createLib2 *tmp_con2 = getFunc<createLib2*>(pl, "config_create_c");
-          if(tmp_con2)
+          if(tmp_con2){
+            newLib.configCreate = tmp_con2;
             newLib.libInterface = tmp_con2(this, config);
+          }
         }
       }
     }
@@ -301,6 +309,19 @@ namespace lib_manager {
     libStruct *theLib = &(libMap[libName]);
     theLib->useCount++;
     return theLib->libInterface;
+  }
+
+  LibInterface* LibManager::getNewInstance(const string &libName) {
+    if(libMap.find(libName) == libMap.end()) {
+#ifdef DEBUF
+      fprintf(stderr, "LibManager: could not find \"%s\"\n", libName.c_str());
+#endif
+      return 0;
+    }
+    libStruct *theLib = &(libMap[libName]);
+    // todo: clear how to deal with the use count in this case
+    //theLib->useCount++;
+    return theLib->create(this);
   }
 
   /**

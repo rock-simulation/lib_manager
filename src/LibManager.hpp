@@ -45,6 +45,8 @@ namespace lib_manager {
   struct libStruct {
     LibInterface *libInterface;
     destroyLib *destroy;
+    createLib *create;
+    createLib2 *configCreate;
     int useCount;
     bool wasUnloaded;
     std::string path;
@@ -92,6 +94,7 @@ namespace lib_manager {
                                           bool load = false)
     { return acquireLibraryAs<T>(libName, load); }
 
+    LibInterface* getNewInstance(const std::string &libName);
     ErrorNumber releaseLibrary(const std::string &libName);
 
     ErrorNumber unloadLibrary(const std::string &libPath);

@@ -104,11 +104,13 @@ namespace lib_manager {
     LibInfo getLibraryInfo(const std::string &libName) const;
     void dumpTo(const std::string &filename) const;
     void clearLibraries(void);
+    static LibManager* getLibManagerSingelton();
 
   private:
     /// The container in which information on all managed libraries is stored.
     std::map<std::string, libStruct> libMap;
         
+    static LibManager *instance;
   }; // class LibManager
 
   // template implementations

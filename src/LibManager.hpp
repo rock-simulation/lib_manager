@@ -84,6 +84,7 @@ namespace lib_manager {
                             bool noCallback = false);
 
     std::string findLibrary(const std::string &libName);
+    void addToBlacklist(const std::string &libName);
 
     LibInterface* acquireLibrary(const std::string &libName);
     template <typename T> T* acquireLibraryAs(const std::string &libName,
@@ -109,7 +110,7 @@ namespace lib_manager {
   private:
     /// The container in which information on all managed libraries is stored.
     std::map<std::string, libStruct> libMap;
-        
+    std::map<std::string, int> blacklist;
     static LibManager *instance;
   }; // class LibManager
 

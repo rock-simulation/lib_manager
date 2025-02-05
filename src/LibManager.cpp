@@ -118,6 +118,13 @@ namespace lib_manager {
     }
   }
 
+  void LibManager::addToBlacklist(const std::string &libName) {
+    if(blacklist.find(libName) == blacklist.end()) {
+      fprintf(stderr, "add to blacklist: %s\n", libName.c_str());
+      blacklist[libName] = 1;
+    }
+  }
+
   /**
    * Registers a new library. An associated libStruct is created and all other
    * registered libraries are informed about the new library by calling the
@@ -163,6 +170,7 @@ namespace lib_manager {
   LibManager::ErrorNumber LibManager::loadLibrary(const string &libPath,
                                                   void *config, bool optional,
                                                   bool noCallback) {
+    if(blacklist.find(libPath) != blacklist.end()) return LIBMGR_NO_ERROR;
     std::string filepath = findLibrary(libPath);
 
     libStruct newLib;

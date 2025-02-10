@@ -60,6 +60,14 @@ namespace lib_manager {
   template <typename T>
   static T getFunc(LibHandle libHandle, const string &name);
 
+  LibManager* LibManager::instance = NULL;
+
+  LibManager* LibManager::getLibManagerSingelton() {
+    if(LibManager::instance == NULL) {
+      LibManager::instance = new LibManager();
+    }
+    return LibManager::instance;
+  }
 
   LibManager::LibManager() {
     errMessage[0] = "no error";

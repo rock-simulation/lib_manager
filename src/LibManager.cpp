@@ -49,7 +49,7 @@ namespace lib_manager {
   static struct LibInfo stdlibInfo = { "libstdc++", "",
                                        (__GNUC__*100+__GNUC_MINOR__),"","",0};
 #else
-#  warning Unknown standard C Library!
+//#warning Unknown standard C Library!
   static struct LibInfo stdlibInfo = { "unknown stdlib", "", 0, "", "", 0 };
 #endif
 
@@ -535,7 +535,8 @@ namespace lib_manager {
         fprintf(stderr, "lib_manager - NOTIFICATION (concerning optional library):\n     %s\n",
                 errorMsg.c_str());
       } else {
-        fprintf(stderr, "lib_manager - ERROR:\n     %s\n",
+        fprintf(stderr, "lib_manager - ERROR loading %s:\n     %s\n",
+                libPath.c_str(),
                 errorMsg.c_str());
       }
     }

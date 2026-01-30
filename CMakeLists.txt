@@ -1,7 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
 project(lib_manager)
+
 set(PROJECT_VERSION 1.0)
 set(PROJECT_DESCRIPTION "This is the simulation plugin for the RIMRES Reipos modules")
-cmake_minimum_required(VERSION 2.6)
 include(scripts/cmake/lib_manager.cmake)
 
 lib_defaults()

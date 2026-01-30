@@ -209,6 +209,10 @@ namespace lib_manager {
           }
         }
       }
+      else
+      {
+	fprintf(stderr, "lib_manager - ERROR load destroy_c for %s\n", filepath.c_str());
+      }
     }
 
     if(!newLib.libInterface)
@@ -535,8 +539,8 @@ namespace lib_manager {
         fprintf(stderr, "lib_manager - NOTIFICATION (concerning optional library):\n     %s\n",
                 errorMsg.c_str());
       } else {
-        fprintf(stderr, "lib_manager - ERROR:\n     %s\n",
-                errorMsg.c_str());
+        fprintf(stderr, "lib_manager - load %s ERROR:\n     %s\n",
+                libPath.c_str(), errorMsg.c_str());
       }
     }
     return libHandle;
